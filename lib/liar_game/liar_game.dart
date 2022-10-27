@@ -5,9 +5,10 @@ import 'package:flip_card/flip_card.dart';
 
 class LiarGame extends StatefulWidget {
   int numOfPeople;
+  String theme;
   String word;
 
-  LiarGame(this.numOfPeople, this.word);
+  LiarGame(this.numOfPeople, this.theme, this.word);
 
   @override
   State<LiarGame> createState() => _LiarGameState();
@@ -17,12 +18,11 @@ class _LiarGameState extends State<LiarGame> {
   int curPerson = 0;
   int flipCount = 0;
   int liar = 0;
-  bool complete = false;
 
   @override
   void initState() {
     super.initState();
-    liar = Random(DateTime.now().hashCode).nextInt(widget.numOfPeople-1)+2;
+    liar = Random(DateTime.now().hashCode).nextInt(widget.numOfPeople - 1) + 1;
   }
 
   @override
@@ -31,89 +31,93 @@ class _LiarGameState extends State<LiarGame> {
       child: Scaffold(
         backgroundColor: Colors.grey,
         body: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              width: MediaQuery.of(context).size.width,
-              margin: EdgeInsets.only(top: 15),
+              height: MediaQuery.of(context).size.height * 0.12,
               padding: EdgeInsets.only(
-                  left: MediaQuery.of(context).size.width * 0.6, right: 15),
-              child: OutlinedButton.icon(
+                  right: MediaQuery.of(context).size.width * 0.03),
+              alignment: AlignmentDirectional.centerEnd,
+              child: IconButton(
                 icon: Icon(Icons.refresh),
                 onPressed: () {
                   Navigator.of(context).pop();
                 },
-                label: Text(
-                  "다시하기",
-                  style: TextStyle(fontSize: 15),
-                ),
-                style: OutlinedButton.styleFrom(fixedSize: Size(150, 40)),
+                iconSize: 35,
               ),
             ),
+            Text(
+              "테마: ${widget.theme}",
+              style: TextStyle(
+                  fontSize: 20,
+                  color: Colors.white70,
+                  fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 20),
+            Text(
+              "확인한 인원 수: $curPerson",
+              style: TextStyle(
+                  fontSize: 20,
+                  color: Colors.white70,
+                  fontWeight: FontWeight.bold),
+            ),
             Container(
-                height: MediaQuery.of(context).size.height * 0.75,
-                width: MediaQuery.of(context).size.width * 0.6,
-                padding: EdgeInsets.symmetric(vertical: 230),
-                child: !complete
-                    ? FlipCard(
-                        onFlipDone: (_) {
-                          if (flipCount / 2 == widget.numOfPeople)
-                            setState(() => complete = true);
-                        },
-                        onFlip: () {
-                          flipCount++;
-                          if (flipCount % 2 == 1) setState(() => curPerson++);
-                        },
-                        front: Card(
-                            elevation: 4,
-                            child: Center(
-                              child: Text(
-                                "내용 보기",
+              height: MediaQuery.of(context).size.height * 0.5,
+              width: MediaQuery.of(context).size.width * 0.6,
+              padding: EdgeInsets.symmetric(
+                  vertical: MediaQuery.of(context).size.height * 0.20),
+              child: FlipCard(
+                onFlip: () {
+                  flipCount++;
+                  if (flipCount % 2 == 1) setState(() => curPerson++);
+                  if (flipCount ~/ 2 == widget.numOfPeople)
+                    Future.delayed(Duration(milliseconds: 500), () {
+                      setState(() => Navigator.of(context).pop());
+                      ScaffoldMessenger.of(context)
+                          .showSnackBar(SnackBar(content: Text("확인 완료!")));
+                    });
+                },
+                front: Card(
+                    elevation: 4,
+                    child: Center(
+                      child: Text(
+                        "내용 보기",
+                        style: TextStyle(fontSize: 18),
+                      ),
+                    )),
+                back: Card(
+                  elevation: 4,
+                  child: Center(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: curPerson == liar
+                          ? [
+                              Text(
+                                "당신은 ",
                                 style: TextStyle(fontSize: 18),
                               ),
-                            )),
-                        back: Card(
-                          elevation: 4,
-                          child: Center(
-                              child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: curPerson == liar
-                                ? [
-                                    Text(
-                                      "당신은 ",
-                                      style: TextStyle(fontSize: 18),
-                                    ),
-                                    Text(
-                                      "라이어 ",
-                                      style: TextStyle(
-                                          fontSize: 18, color: Colors.red),
-                                    ),
-                                    Text(
-                                      "입니다.",
-                                      style: TextStyle(fontSize: 18),
-                                    ),
-                                  ]
-                                : [
-                                    Text("제시어: ",
-                                        style: TextStyle(fontSize: 18)),
-                                    Text(
-                                      widget.word,
-                                      style: TextStyle(
-                                          fontSize: 18, color: Colors.red),
-                                    ),
-                                  ],
-                          )),
-                        ))
-                    : Card(
-                        elevation: 4,
-                        child: Container(
-                          height: 30,
-                          width: 120,
-                          alignment: Alignment.center,
-                          child: Text("확인 완료!", style: TextStyle(fontSize: 18)),
-                        ),
-                      )),
+                              Text(
+                                "라이어 ",
+                                style:
+                                    TextStyle(fontSize: 18, color: Colors.red),
+                              ),
+                              Text(
+                                "입니다.",
+                                style: TextStyle(fontSize: 18),
+                              ),
+                            ]
+                          : [
+                              Text("제시어: ", style: TextStyle(fontSize: 18)),
+                              Text(
+                                widget.word,
+                                style:
+                                    TextStyle(fontSize: 18, color: Colors.red),
+                              ),
+                            ],
+                    ),
+                  ),
+                ),
+              ),
+            )
           ],
         ),
       ),
